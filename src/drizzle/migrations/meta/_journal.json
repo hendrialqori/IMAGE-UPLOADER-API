@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1730629173166,
+      "tag": "0000_furry_luckman",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1730636809470,
+      "tag": "0001_grey_james_howlett",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1730713855408,
+      "tag": "0002_redundant_crystal",
+      "breakpoints": true
+    }
+  ]
+}

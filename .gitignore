@@ -1,0 +1,6 @@
+/dist
+/node_modules
+/_uploads
+
+.env
+tsconfig.tsbuildinfo
