@@ -2,5 +2,7 @@
 /node_modules
 /_uploads
 
+
 .env
 tsconfig.tsbuildinfo
+pnpm-lock.yaml
