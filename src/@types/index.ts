@@ -6,6 +6,12 @@ export type InsertUser = typeof users.$inferInsert
 export type Upload = typeof images.$inferSelect
 export type InsertUpload = typeof images.$inferInsert
 
+export type Success<T> = {
+    status: number
+    data: T;
+    metadata?: Metadata
+    message: string;
+}
 export type Error = {
     status: number;
     type: string;
@@ -13,10 +19,12 @@ export type Error = {
     errors?: unknown;
 }
 
-export type Success<T> = {
-    status: number
-    data: T;
-    message: string;
+export type Metadata = {
+    page: number;
+    limit: number;
+    from: number;
+    to: number;
+    total_row: number;
 }
 
 export type Role = "SUPER_ADMIN" | "MEMBER"
@@ -28,4 +36,11 @@ export type JWTPayload = {
         role: Role,
         createdAt: Date
     }
+}
+
+export type Query = {
+    page: string;
+    sort_type: string;
+    sort_key: string;
+    user_search: string;
 }

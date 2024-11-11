@@ -23,11 +23,15 @@ export default class AuthController {
 
     static async login(req: Request, res: Response, next: NextFunction) {
         try {
-            const { access_token, username } = await AuthService.login(req)
+            const { access_token, username, role } = await AuthService.login(req)
 
             return mockSuccessResponse(res, {
                 status: StatusCodes.OK,
-                data: access_token,
+                data: {
+                    username,
+                    role,
+                    token: access_token
+                },
                 message: `Hello ${username}:) You're loggin now`
             })
 

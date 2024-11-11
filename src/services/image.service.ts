@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq, not } from "drizzle-orm";
 import { Request } from "express";
 import { InsertUpload, JWTPayload } from "../@types";
 import { Validation } from "../validation/validation";
@@ -14,7 +14,6 @@ import { MySqlColumn } from "drizzle-orm/mysql-core";
 import { unlink } from "node:fs/promises";
 import { io } from "../main";
 import { LEADERBOARD } from "../constant";
-import LeaderboardService from "./leaderboard.service";
 import UserService from "./user.service";
 
 export default class ImageService {
@@ -25,7 +24,7 @@ export default class ImageService {
         id: imagesTable.id,
         title: imagesTable.title,
         point: imagesTable.point,
-        // category
+        category: imagesTable.type,
         user: {
             id: usersTable.id,
             username: usersTable.username
@@ -43,6 +42,7 @@ export default class ImageService {
                 .from(imagesTable)
                 .innerJoin(usersTable, eq(imagesTable.userId, usersTable.id))
                 .where(eq(imagesTable.userId, userId))
+                .orderBy(desc(imagesTable.createdAt))
 
         return result
 
@@ -53,15 +53,21 @@ export default class ImageService {
         const body = req.body as InsertUpload
         const userId = (req as Request & JWTPayload).user.id
 
-        const { md5 } = Validation.validate(ImageValidation.ADD, body)
+        const { type, md5 } = Validation.validate(ImageValidation.ADD, body)
 
         // read or create if dir doesn't exists
         await ImageService.readOrCreateDir(ImageService.uploadDirPath)
 
         // check duplicate image by md5
-        const image = await ImageService.checkImage(imagesTable.md5, md5)
-        if (image) {
-            throw new ResponseError(StatusCodes.UNPROCESSABLE_ENTITY, "Cannot upload duplicate image")
+        // const image = await ImageService.checkImage(imagesTable.md5, md5)
+        // if (image) {
+        //     throw new ResponseError(StatusCodes.UNPROCESSABLE_ENTITY, "Cannot upload duplicate image")
+        // }
+
+        // check suspend user
+        const user = await ImageService.checkUser(usersTable.id, userId)
+        if (user.role === "MEMBER" && user.isSuspend) {
+            throw new ResponseError(StatusCodes.FORBIDDEN, "Your account has suspended, cannot upload image")
         }
 
         // setup store image
@@ -75,13 +81,13 @@ export default class ImageService {
         const payload: InsertUpload = {
             id: uuid(),
             title: imageName,
+            type,
             md5,
             userId
         }
 
         const [id] =
             await db.insert(imagesTable).values(payload).$returningId()
-
 
         return { ...id, ...payload }
     }
@@ -103,7 +109,7 @@ export default class ImageService {
         await db.update(imagesTable).set(updateRequest).where(eq(imagesTable.id, imageId))
 
 
-        io.emit(LEADERBOARD, await UserService.list())
+        io.emit(LEADERBOARD, await UserService.leaderboard())
 
         return { id: image.id, title: image.title, point: body.point }
 
@@ -125,6 +131,11 @@ export default class ImageService {
         await unlink(imageDirPath)
 
         return image.id
+    }
+
+    private static async checkUser<T extends {}>(column: MySqlColumn, value: T) {
+        const [result] = await db.select().from(usersTable).where(eq(column, value))
+        return result
     }
 
     private static async checkImage<T extends {}>(column: MySqlColumn, value: T) {

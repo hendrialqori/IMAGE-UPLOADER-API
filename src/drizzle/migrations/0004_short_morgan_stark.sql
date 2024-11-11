@@ -1,0 +1,1 @@
+ALTER TABLE `images` MODIFY COLUMN `type` text NOT NULL;

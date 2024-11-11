@@ -8,7 +8,7 @@ import { users as usersTable, images as imagesTable } from "../model/schema";
 
 import { Validation } from "../validation/validation";
 import { AuthValidation } from "../validation/auth.validation";
-import { ResponseError } from "../utils/errors";
+import { AuthenticationError } from "../utils/errors";
 
 import type { InsertUser, JWTPayload } from "../@types";
 import { Request } from "express";
@@ -19,13 +19,6 @@ import { SECRET_KEY } from "../constant";
 export default class AuthService {
 
     private static column = {
-        user: {
-            id: usersTable.id,
-            username: usersTable.username,
-            role: usersTable.role,
-            created_at: imagesTable.createdAt,
-            updated_at: imagesTable.updatedAt
-        },
         images: {
             id: imagesTable.id,
             title: imagesTable.title,
@@ -44,13 +37,13 @@ export default class AuthService {
             usersTable.username, loginRequest.username
         )
         if (!user) {
-            throw new ResponseError(404, 'User not found!')
+            throw new AuthenticationError(404, 'User not found!')
         }
 
         // password match checker
         const isPasswordValid = await bcrypt.compare(loginRequest.password, user.password)
         if (!isPasswordValid) {
-            throw new ResponseError(400, "Wrong password!")
+            throw new AuthenticationError(400, "Wrong password!")
         }
 
         // generate jwt token
@@ -77,7 +70,7 @@ export default class AuthService {
         )
 
         if (userByName) {
-            throw new ResponseError(400, "Username already exists!")
+            throw new AuthenticationError(400, "User already exist, please use another username")
         }
 
         const genSalt = await bcrypt.genSalt(10)
@@ -99,19 +92,23 @@ export default class AuthService {
     }
 
     static async credential(req: Request) {
-        const userId = (req as Request & JWTPayload).user.id
+        const request = (req as Request & JWTPayload | undefined)
+        const userId = request.user.id
 
-        const result =
+        const [{ password, ...restUser }] =
+            await db.select().from(usersTable).where(eq(usersTable.id, userId))
+
+        const images =
             await db.select(AuthService.column)
                 .from(imagesTable)
                 .innerJoin(usersTable, eq(imagesTable.userId, usersTable.id))
                 .where(eq(imagesTable.userId, userId))
 
-        const totalPoint = result.map((res) => res.images.point).reduce((acc, current) => acc + current, 0)
 
-        return { user: result[0].user, point: totalPoint }
+        const totalPointImage = images.map((res) => res.images.point).reduce((acc, current) => acc + current, 0)
+
+        return { ...restUser, point: totalPointImage }
     }
-
 
     private static async selectUserIfExists(columTable: MySqlColumn, columnSelect: string) {
         return await db.

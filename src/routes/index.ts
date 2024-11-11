@@ -21,9 +21,20 @@ apiRouter.post(`${ROUTE}/auth/register`, AuthController.register)
 apiRouter.get(`${ROUTE}/auth/credential`, validation(ALL_ROLES), AuthController.credential)
 
 // users
+apiRouter.get(`${ROUTE}/user/leaderboard`, validation(SUPER_ADMIN),
+    UserController.leaderboard
+)
 apiRouter.get(`${ROUTE}/user/list`, validation(SUPER_ADMIN),
     UserController.list
 )
+apiRouter.put(`${ROUTE}/user/suspend/:userId`, validation(SUPER_ADMIN),
+    UserController.suspend_user
+)
+apiRouter.put(`${ROUTE}/user/recovery/:userId`, validation(SUPER_ADMIN),
+    UserController.recovery_user
+)
+
+
 // images
 apiRouter.get(`${ROUTE}/image/list/:userId`, validation(SUPER_ADMIN),
     ImageController.listByUserId

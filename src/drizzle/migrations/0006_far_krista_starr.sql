@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `is_suspend` boolean DEFAULT false;

@@ -22,6 +22,34 @@
       "when": 1730713855408,
       "tag": "0002_redundant_crystal",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1731035979830,
+      "tag": "0003_awesome_white_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1731036131584,
+      "tag": "0004_short_morgan_stark",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1731221160982,
+      "tag": "0005_overconfident_thaddeus_ross",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1731328086358,
+      "tag": "0006_far_krista_starr",
+      "breakpoints": true
     }
   ]
 }

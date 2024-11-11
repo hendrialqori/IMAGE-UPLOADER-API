@@ -31,7 +31,8 @@ const io = new SocketIOServer(server, {
 export { io }
 
 app.use(cors({
-    origin: FRONTEND_ORIGIN
+    origin: FRONTEND_ORIGIN,
+    credentials: true
 }))
 
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms"))
@@ -47,7 +48,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(helmet());
 
 //serve static file for image
-app.use(express.static(path.join(__dirname, "..", "_uploads")));
+app.use("/upload", express.static(path.join(__dirname, "..", "_uploads")));
 
 // cookie middleware
 app.use(cookieParser())
@@ -71,7 +72,7 @@ io.on("connection", async (socket) => {
     console.log("Socket connection ", socket.id)
 
     // first emit top 10 leaderboard
-    socket.emit(LEADERBOARD, await UserService.list())
+    socket.emit(LEADERBOARD, await UserService.leaderboard())
 })
 
 server.listen(PORT, () => {
