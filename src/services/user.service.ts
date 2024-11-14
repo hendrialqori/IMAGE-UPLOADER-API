@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { asc, desc, eq, like, not, sql, and } from "drizzle-orm";
+import { asc, desc, eq, like, not, sql, and, gt } from "drizzle-orm";
 import { db } from "../model/db";
 import { users as usersTable, images as imagesTable } from "../model/schema";
 import { Query, Metadata, InsertUser } from "../@types";
@@ -21,8 +21,8 @@ export default class UserService {
     private static LEADERBOARD_COLUMN = {
         id: usersTable.id,
         username: usersTable.username,
-        role: usersTable.role,
-        point: sql`CAST(COALESCE(SUM(${imagesTable.point}), 0) AS SIGNED)`.as("point")
+        point: sql`CAST(COALESCE(SUM(${imagesTable.point}), 0) AS SIGNED)`.as("point"),
+        total_upload: sql`CAST(COALESCE(COUNT(${imagesTable.id}), 0) AS SIGNED)`.as("total_upload"),
     }
 
     static async list(req: Request) {
@@ -74,7 +74,13 @@ export default class UserService {
                 .from(usersTable)
                 .leftJoin(imagesTable, eq(imagesTable.userId, usersTable.id))
                 .groupBy(usersTable.id)
-                .orderBy(desc(sql`CAST(COALESCE(SUM(${imagesTable.point}), 0) AS SIGNED)`))
+                .orderBy(desc(sql`SUM(${imagesTable.point})`))
+                .where(
+                    and(
+                        // user role not SUPER_ADMIN
+                        not(eq(usersTable.role, "SUPER_ADMIN")),
+                        // user suspend is false
+                        eq(usersTable.isSuspend, false)))
                 .limit(10)
 
         return result
