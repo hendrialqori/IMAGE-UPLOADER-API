@@ -1,5 +1,5 @@
 import { type MySqlColumn } from "drizzle-orm/mysql-core";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
@@ -104,10 +104,9 @@ export default class AuthService {
                 .innerJoin(usersTable, eq(imagesTable.userId, usersTable.id))
                 .where(eq(imagesTable.userId, userId))
 
-
         const totalPointImage = images.map((res) => res.images.point).reduce((acc, current) => acc + current, 0)
 
-        return { ...restUser, point: totalPointImage }
+        return { ...restUser, point: totalPointImage, total_upload: images.length }
     }
 
     private static async selectUserIfExists(columTable: MySqlColumn, columnSelect: string) {
