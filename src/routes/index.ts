@@ -36,7 +36,7 @@ apiRouter.put(`${ROUTE}/user/recovery/:userId`, validation(SUPER_ADMIN),
 
 
 // images
-apiRouter.get(`${ROUTE}/image/list/:userId`, validation(SUPER_ADMIN),
+apiRouter.get(`${ROUTE}/image/list/:userId`, validation(ALL_ROLES),
     ImageController.listByUserId
 )
 apiRouter.post(`${ROUTE}/image/add`, [...validation(ALL_ROLES), imageUpload.single("image")],

@@ -22,7 +22,7 @@ export const images = mysqlTable(IMAGES, {
     type: text("type").notNull(),
     userId: varchar("user_id", { length: 16 }).notNull()
         .references(() => users.id, { onDelete: "cascade" }),
-    point: int("point").notNull().default(1),
+    point: int("point").notNull(),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow()
 })

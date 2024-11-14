@@ -1,20 +1,21 @@
-import { and, desc, eq, not } from "drizzle-orm";
 import { Request } from "express";
+import { desc, eq } from "drizzle-orm";
+import path from "path";
+import { StatusCodes } from "http-status-codes";
+import { MySqlColumn } from "drizzle-orm/mysql-core";
+import { unlink } from "node:fs/promises";
+import UserService from "./user.service";
+
+import { db } from "../model/db";
 import { InsertUpload, JWTPayload } from "../@types";
 import { Validation } from "../validation/validation";
 import { ImageValidation } from "../validation/image.validation";
 import { uuid } from "../utils/helpers";
-import path from "path";
 import { access, mkdir, writeFile } from "node:fs/promises";
-import { db } from "../model/db";
 import { users as usersTable, images as imagesTable } from "../model/schema";
 import { ResponseError } from "../utils/errors";
-import { StatusCodes } from "http-status-codes";
-import { MySqlColumn } from "drizzle-orm/mysql-core";
-import { unlink } from "node:fs/promises";
 import { io } from "../main";
-import { LEADERBOARD } from "../constant";
-import UserService from "./user.service";
+import { LEADERBOARD, imageTypeValueMapping } from "../constant";
 
 export default class ImageService {
 
@@ -59,10 +60,10 @@ export default class ImageService {
         await ImageService.readOrCreateDir(ImageService.uploadDirPath)
 
         // check duplicate image by md5
-        // const image = await ImageService.checkImage(imagesTable.md5, md5)
-        // if (image) {
-        //     throw new ResponseError(StatusCodes.UNPROCESSABLE_ENTITY, "Cannot upload duplicate image")
-        // }
+        const image = await ImageService.checkImage(imagesTable.md5, md5)
+        if (image) {
+            throw new ResponseError(StatusCodes.UNPROCESSABLE_ENTITY, "Cannot upload duplicate image")
+        }
 
         // check suspend user
         const user = await ImageService.checkUser(usersTable.id, userId)
@@ -82,6 +83,7 @@ export default class ImageService {
             id: uuid(),
             title: imageName,
             type,
+            point: imageTypeValueMapping[type],
             md5,
             userId
         }
@@ -89,9 +91,10 @@ export default class ImageService {
         const [id] =
             await db.insert(imagesTable).values(payload).$returningId()
 
+        io.emit(LEADERBOARD, await UserService.leaderboard())
+
         return { ...id, ...payload }
     }
-
 
     static async updatePoint(req: Request) {
         const { imageId } = req.params as { imageId: string }
@@ -129,6 +132,8 @@ export default class ImageService {
         await db.delete(imagesTable).where(eq(imagesTable.id, image.id))
 
         await unlink(imageDirPath)
+
+        io.emit(LEADERBOARD, await UserService.leaderboard())
 
         return image.id
     }
