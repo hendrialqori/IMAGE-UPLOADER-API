@@ -48,7 +48,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(helmet());
 
 //serve static file for image
-app.use("/uploads", express.static(path.join(__dirname, "..", "_uploads")));
+app.use("/api/v1/uploads", express.static(path.join(__dirname, "..", "_uploads")));
 
 // cookie middleware
 app.use(cookieParser())
