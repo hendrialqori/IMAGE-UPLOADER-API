@@ -6,23 +6,18 @@ import { Query, Metadata, InsertUser } from "../@types";
 import { MySqlColumn } from "drizzle-orm/mysql-core";
 import { ResponseError } from "../utils/errors";
 import { StatusCodes } from "http-status-codes";
+import { LEADERBOARD } from "../constant";
+import { io } from "../main";
 
 export default class UserService {
 
-    private static LIST_COLUMN = {
+    private static COLUMN = {
         id: usersTable.id,
         username: usersTable.username,
         point: sql`CAST(COALESCE(SUM(${imagesTable.point}), 0) AS SIGNED)`.as("point"),
         total_upload: sql`CAST(COALESCE(COUNT(${imagesTable.id}), 0) AS SIGNED)`.as("total_upload"),
         is_suspend: usersTable.isSuspend
 
-    }
-
-    private static LEADERBOARD_COLUMN = {
-        id: usersTable.id,
-        username: usersTable.username,
-        point: sql`CAST(COALESCE(SUM(${imagesTable.point}), 0) AS SIGNED)`.as("point"),
-        total_upload: sql`CAST(COALESCE(COUNT(${imagesTable.id}), 0) AS SIGNED)`.as("total_upload"),
     }
 
     static async list(req: Request) {
@@ -37,14 +32,14 @@ export default class UserService {
         const user_search = query.user_search ?? ""
 
         const groupMapping = {
-            "ASC": asc(UserService.LIST_COLUMN[sortKey]),
-            "DESC": desc(UserService.LIST_COLUMN[sortKey]),
+            "ASC": asc(UserService.COLUMN[sortKey]),
+            "DESC": desc(UserService.COLUMN[sortKey]),
             "UNKNOWN": null
         }
 
         const groupClause = groupMapping[sortType]
 
-        const users = await db.select(UserService.LIST_COLUMN)
+        const users = await db.select(UserService.COLUMN)
             .from(usersTable)
             .leftJoin(imagesTable, eq(imagesTable.userId, usersTable.id))
             .orderBy(groupClause)
@@ -70,17 +65,14 @@ export default class UserService {
 
     static async leaderboard() {
         const result =
-            await db.select(UserService.LEADERBOARD_COLUMN)
+            await db.select(UserService.COLUMN)
                 .from(usersTable)
                 .leftJoin(imagesTable, eq(imagesTable.userId, usersTable.id))
                 .groupBy(usersTable.id)
                 .orderBy(desc(sql`SUM(${imagesTable.point})`))
                 .where(
-                    and(
-                        // user role not SUPER_ADMIN
-                        not(eq(usersTable.role, "SUPER_ADMIN")),
-                        // user suspend is false
-                        eq(usersTable.isSuspend, false)))
+                    // user role not SUPER_ADMIN
+                    not(eq(usersTable.role, "SUPER_ADMIN")))
                 .limit(10)
 
         return result
@@ -99,6 +91,8 @@ export default class UserService {
         } as InsertUser & { isSuspend: boolean }
 
         await db.update(usersTable).set(payload).where(eq(usersTable.id, userId))
+
+        io.emit(LEADERBOARD, await UserService.leaderboard())
     }
 
     static async recovery_user(req: Request) {
@@ -109,6 +103,8 @@ export default class UserService {
         } as InsertUser & { isSuspend: boolean }
 
         await db.update(usersTable).set(payload).where(eq(usersTable.id, userId))
+
+        io.emit(LEADERBOARD, await UserService.leaderboard())
     }
 
     private static async checkUser<T extends {}>(column: MySqlColumn, value: T) {
