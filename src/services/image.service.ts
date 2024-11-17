@@ -71,8 +71,11 @@ export default class ImageService {
             throw new ResponseError(StatusCodes.FORBIDDEN, "Your account has suspended, cannot upload image")
         }
 
+        // sanitize % from image title
+        const sanitizeOriginalNameImage = file.originalname.replace(/%/g, "_")
+
         // setup store image
-        const imageName = `${md5}-${file.originalname}`
+        const imageName = `${md5}-${sanitizeOriginalNameImage}`
         const imageBuffer = file.buffer
         const imagePath = path.join(this.uploadDirPath, imageName);
 
