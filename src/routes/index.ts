@@ -19,6 +19,7 @@ const validation = (allowedRoles: Role[]) => [accessValidation, authorizeRole(al
 apiRouter.post(`${ROUTE}/auth/login`, AuthController.login)
 apiRouter.post(`${ROUTE}/auth/register`, AuthController.register)
 apiRouter.get(`${ROUTE}/auth/credential`, validation(ALL_ROLES), AuthController.credential)
+apiRouter.get(`${ROUTE}/auth/check/is-suspend`, validation(ALL_ROLES), AuthController.checkIsSuspend)
 
 // users
 apiRouter.get(`${ROUTE}/user/leaderboard`, validation(SUPER_ADMIN),

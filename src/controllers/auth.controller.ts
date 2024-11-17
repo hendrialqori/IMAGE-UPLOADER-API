@@ -54,4 +54,18 @@ export default class AuthController {
             next(error)
         }
     }
+
+    static async checkIsSuspend(req: Request, res: Response, next: NextFunction) {
+        try {
+            await AuthService.checkIsSuspend(req)
+            return mockSuccessResponse(res, {
+                status: StatusCodes.OK,
+                data: null,
+                message: "You can upload image"
+            })
+
+        } catch (error) {
+            next(error)
+        }
+    }
 }

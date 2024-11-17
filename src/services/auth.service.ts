@@ -8,12 +8,13 @@ import { users as usersTable, images as imagesTable } from "../model/schema";
 
 import { Validation } from "../validation/validation";
 import { AuthValidation } from "../validation/auth.validation";
-import { AuthenticationError } from "../utils/errors";
+import { AuthenticationError, ResponseError } from "../utils/errors";
 
 import type { InsertUser, JWTPayload } from "../@types";
 import { Request } from "express";
 import { uuid } from "../utils/helpers";
 import { SECRET_KEY } from "../constant";
+import { StatusCodes } from "http-status-codes";
 
 
 export default class AuthService {
@@ -107,6 +108,20 @@ export default class AuthService {
         const totalPointImage = images.map((res) => res.images.point).reduce((acc, current) => acc + current, 0)
 
         return { ...restUser, point: totalPointImage, total_upload: images.length }
+    }
+
+    static async checkIsSuspend(req: Request) {
+        const request = (req as Request & JWTPayload | undefined)
+        const userId = request.user.id
+
+        const [user] = await AuthService.selectUserIfExists(usersTable.id, userId)
+
+        if (user.isSuspend) {
+            throw new ResponseError(StatusCodes.FORBIDDEN, "Your account has suspended, cannot upload image");
+        }
+
+        return user
+
     }
 
     private static async selectUserIfExists(columTable: MySqlColumn, columnSelect: string) {
