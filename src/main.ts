@@ -25,7 +25,8 @@ const server = http.createServer(app)
 const io = new SocketIOServer(server, {
     cors: {
         origin: [FRONTEND_ORIGIN],
-    }
+    },
+    path: "/ws"
 })
 
 export { io }
@@ -48,7 +49,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(helmet());
 
 //serve static file for image
-app.use("/api/v1/uploads", express.static(path.join(__dirname, "..", "_uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "..", "_uploads"), {
+    setHeaders: (res, path, stat) => {
+        res.set('Content-Type', 'image/png');
+    }
+}));
 
 // cookie middleware
 app.use(cookieParser())
