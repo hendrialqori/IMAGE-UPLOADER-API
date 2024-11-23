@@ -1,10 +1,12 @@
-import { users, images } from "../model/schema"
+import { users, images, settings } from "../model/schema"
 
 export type User = typeof users.$inferSelect
 export type InsertUser = typeof users.$inferInsert
 
 export type Upload = typeof images.$inferSelect
 export type InsertUpload = typeof images.$inferInsert
+
+export type InsertSetting = typeof settings.$inferInsert
 
 export type Success<T> = {
     status: number

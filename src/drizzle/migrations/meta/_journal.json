@@ -57,6 +57,27 @@
       "when": 1731574454192,
       "tag": "0007_superb_doorman",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1732365172934,
+      "tag": "0008_kind_lady_mastermind",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1732365563223,
+      "tag": "0009_dapper_scarecrow",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1732365785917,
+      "tag": "0010_famous_wasp",
+      "breakpoints": true
     }
   ]
 }

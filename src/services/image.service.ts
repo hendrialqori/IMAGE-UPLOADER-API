@@ -12,7 +12,7 @@ import { Validation } from "../validation/validation";
 import { ImageValidation } from "../validation/image.validation";
 import { uuid } from "../utils/helpers";
 import { access, mkdir, writeFile } from "node:fs/promises";
-import { users as usersTable, images as imagesTable } from "../model/schema";
+import { users as usersTable, images as imagesTable, settings as settingTable } from "../model/schema";
 import { ResponseError } from "../utils/errors";
 import { io } from "../main";
 import { LEADERBOARD, imageTypeValueMapping } from "../constant";
@@ -53,6 +53,10 @@ export default class ImageService {
         const file = req.file
         const body = req.body as InsertUpload
         const userId = (req as Request & JWTPayload).user.id
+
+
+        // check is event ON / OFF
+        await ImageService.checkEventStatus()
 
         const { type, md5 } = Validation.validate(ImageValidation.ADD, body)
 
@@ -159,5 +163,17 @@ export default class ImageService {
         }
     }
 
+    private static async checkEventStatus() {
+        const [result] = await db.select().from(settingTable).where(eq(settingTable.name, "event"))
+
+        if (!result) {
+            throw new ResponseError(StatusCodes.NOT_FOUND, "There's no property named event")
+        }
+
+        if (result.value === "OFF") {
+            throw new ResponseError(StatusCodes.FORBIDDEN, "Event has ended")
+        }
+
+    }
 
 }

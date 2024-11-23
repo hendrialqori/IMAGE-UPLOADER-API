@@ -1,10 +1,13 @@
 import express from 'express';
+
 import AuthController from '../controllers/auth.controller';
 import ImageController from '../controllers/image.controller';
+import UserController from '../controllers/user.controller';
+import SettingController from '../controllers/setting.contoller';
+
 import { accessValidation, authorizeRole } from '../middlewares/auth.middleware';
 import { imageUpload } from '../utils/upload';
 import { Role } from '../@types';
-import UserController from '../controllers/user.controller';
 
 const apiRouter = express.Router()
 const ROUTE = "/api/v1"
@@ -50,7 +53,10 @@ apiRouter.delete(`${ROUTE}/image/remove/:imageId`, validation(SUPER_ADMIN),
     ImageController.remove
 )
 
+// settings
 
+apiRouter.get(`${ROUTE}/setting/event`, SettingController.eventStatus)
+apiRouter.put(`${ROUTE}/setting/event`, SettingController.eventUpdate)
 
 export default apiRouter
 

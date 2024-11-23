@@ -3,7 +3,9 @@ import { relations } from 'drizzle-orm';
 
 const USERS = "users" as const;
 const IMAGES = "images" as const
+const SETTINGS = "settings" as const
 const ROLE = ["SUPER_ADMIN", "MEMBER"] as const
+const SETTING_VALUE = ["ON", "OFF"] as const
 
 export const users = mysqlTable(USERS, {
     id: varchar("id", { length: 16 }).primaryKey(),
@@ -33,3 +35,11 @@ export const imagesRelations = relations(images, ({ one }) => ({
         references: [users.id]
     })
 }))
+
+export const settings = mysqlTable(SETTINGS, {
+    id: int("id").autoincrement().primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    value: mysqlEnum("value", SETTING_VALUE).default("ON"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow()
+})
