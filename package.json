@@ -1,7 +1,7 @@
 {
-  "name": "image-uploader-api",
+  "name": "pertamina-nre-api",
   "version": "1.0.0",
-  "description": "Provides API for Image uploader event website",
+  "description": "Provides API for lego pertamina nre event website",
   "main": "main.js",
   "scripts": {
     "dev": "tsx watch --clear-screen=true ./src/main.ts",
